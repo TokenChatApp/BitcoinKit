@@ -12,29 +12,29 @@ public class PeerGroup : PeerDelegate {
     public let blockChain: BlockChain
     public let maxConnections: Int
 
+    public let wallet: WalletProtocol
+
     public weak var delegate: PeerGroupDelegate?
 
     var peers = [String: Peer]()
-
-    private var publicKeys = [Data]()
-    private var transactions = [Transaction]()
+    var transactions = [Transaction]()
 
     public init(blockChain: BlockChain, maxConnections: Int = 1) {
         self.blockChain = blockChain
         self.maxConnections = maxConnections
+
+        self.wallet = blockChain.wallet
     }
 
     public func start() {
-        let network = blockChain.network
+        let network = wallet.network
         for i in peers.count..<maxConnections {
-            let peer = Peer(host: network.dnsSeeds[1], network: network)
+            let peer = Peer(host: network.dnsSeeds[i], network: network)
             peer.delegate = self
             peer.connect()
 
             peers[peer.host] = peer
         }
-
-        delegate?.peerGroupDidStart(self)
     }
 
     public func stop() {
@@ -43,12 +43,6 @@ public class PeerGroup : PeerDelegate {
             peer.disconnect()
         }
         peers.removeAll()
-
-        delegate?.peerGroupDidStop(self)
-    }
-
-    public func addPublickey(publicKey: Data) {
-        publicKeys.append(publicKey)
     }
 
     public func sendTransaction(transaction: Transaction) {
@@ -63,7 +57,7 @@ public class PeerGroup : PeerDelegate {
     public func peerDidConnect(_ peer: Peer) {
         if peers.filter({ $0.value.context.isSyncing }).isEmpty {
             let latestBlockHash = blockChain.latestBlockHash()
-            peer.startSync(filters: publicKeys, latestBlockHash: latestBlockHash)
+            peer.startSync(filters: [], latestBlockHash: latestBlockHash)
         }
         if !transactions.isEmpty {
             for transaction in transactions {
@@ -76,25 +70,21 @@ public class PeerGroup : PeerDelegate {
         peers[peer.host] = nil
         start()
     }
-
     public func peer(_ peer: Peer, didReceiveMerkleBlockMessage message: MerkleBlockMessage, hash: Data) {
         try! blockChain.addMerkleBlock(message, hash: hash)
     }
 
     public func peer(_ peer: Peer, didReceiveTransaction transaction: Transaction, hash: Data) {
         try! blockChain.addTransaction(transaction, hash: hash)
-        delegate?.peerGroupDidReceiveTransaction(self)
     }
 }
 
 public protocol PeerGroupDelegate : class {
-    func peerGroupDidStart(_ peerGroup: PeerGroup)
-    func peerGroupDidStop(_ peerGroup: PeerGroup)
-    func peerGroupDidReceiveTransaction(_ peerGroup: PeerGroup)
+    func peerGroupDidStart(_ peer: PeerGroup)
+    func peerGroupDidStop(_ peer: PeerGroup)
 }
 
 extension PeerGroupDelegate {
-    public func peerGroupDidStart(_ peerGroup: PeerGroup) {}
-    public func peerGroupDidStop(_ peerGroup: PeerGroup) {}
-    public func peerGroupDidReceiveTransaction(_ peerGroup: PeerGroup) {}
+    public func peerGroupDidStart(_ peer: PeerGroup) {}
+    public func peerGroupDidStop(_ peer: PeerGroup) {}
 }

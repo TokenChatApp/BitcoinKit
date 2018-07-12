@@ -60,6 +60,10 @@
 		14F37A3A20209B5400D34748 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F37A3920209B5400D34748 /* Transaction.swift */; };
 		14F37A3C20209F9200D34748 /* Script.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F37A3B20209F9200D34748 /* Script.swift */; };
 		14F37A3E2020A02000D34748 /* Signature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F37A3D2020A02000D34748 /* Signature.swift */; };
+		497141E220F6F1BA00268B80 /* Messages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497141E120F6F1B900268B80 /* Messages.swift */; };
+		497141E420F6F21800268B80 /* CommonStructures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497141E320F6F21800268B80 /* CommonStructures.swift */; };
+		497141E720F6F22D00268B80 /* BitcoinKitInternal.m in Sources */ = {isa = PBXBuildFile; fileRef = 497141E520F6F22C00268B80 /* BitcoinKitInternal.m */; };
+		497141E920F6F25F00268B80 /* BitcoinKitInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 497141E620F6F22D00268B80 /* BitcoinKitInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +134,10 @@
 		14F37A3920209B5400D34748 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
 		14F37A3B20209F9200D34748 /* Script.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Script.swift; sourceTree = "<group>"; };
 		14F37A3D2020A02000D34748 /* Signature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
+		497141E120F6F1B900268B80 /* Messages.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Messages.swift; path = "../../../../../Desktop/BitcoinKit-d51df7641e0928a8edcef516de6eaf2341d81d38/BitcoinKit/Messages.swift"; sourceTree = "<group>"; };
+		497141E320F6F21800268B80 /* CommonStructures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CommonStructures.swift; path = "../../../../../Desktop/BitcoinKit-d51df7641e0928a8edcef516de6eaf2341d81d38/BitcoinKit/CommonStructures.swift"; sourceTree = "<group>"; };
+		497141E520F6F22C00268B80 /* BitcoinKitInternal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BitcoinKitInternal.m; path = "../../../../../Desktop/BitcoinKit-d51df7641e0928a8edcef516de6eaf2341d81d38/BitcoinKit/BitcoinKitInternal.m"; sourceTree = "<group>"; };
+		497141E620F6F22D00268B80 /* BitcoinKitInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BitcoinKitInternal.h; path = "../../../../../Desktop/BitcoinKit-d51df7641e0928a8edcef516de6eaf2341d81d38/BitcoinKit/BitcoinKitInternal.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +180,8 @@
 		147494C9201F9A29006D1CF8 /* BitcoinKit */ = {
 			isa = PBXGroup;
 			children = (
+				497141E620F6F22D00268B80 /* BitcoinKitInternal.h */,
+				497141E520F6F22C00268B80 /* BitcoinKitInternal.m */,
 				14A296242032325E00E19177 /* Core */,
 				14A29622203231DD00E19177 /* Wallet */,
 				14A296252032328900E19177 /* Networking */,
@@ -195,6 +205,8 @@
 		14839A7D202FE57300A6CB34 /* Messages */ = {
 			isa = PBXGroup;
 			children = (
+				497141E320F6F21800268B80 /* CommonStructures.swift */,
+				497141E120F6F1B900268B80 /* Messages.swift */,
 				14839AA2202FE78600A6CB34 /* Message.swift */,
 				14839AA6202FE7C700A6CB34 /* VarInt.swift */,
 				14839AA8202FE7DD00A6CB34 /* VarString.swift */,
@@ -279,6 +291,7 @@
 			files = (
 				147494D8201F9A29006D1CF8 /* BitcoinKit.h in Headers */,
 				1419E83A202CDBE500FCB0BE /* BitcoinKitPrivate.h in Headers */,
+				497141E920F6F25F00268B80 /* BitcoinKitInternal.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,7 +395,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		1482B628202954CC0098B612 /* Build Libraries */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			files = (
 			);
 			inputPaths = (
@@ -408,7 +421,9 @@
 				14839A93202FE6AC00A6CB34 /* FilterLoadMessage.swift in Sources */,
 				14839A9D202FE72600A6CB34 /* TransactionOutPoint.swift in Sources */,
 				147494E6201F9BF0006D1CF8 /* Encoding.swift in Sources */,
+				497141E420F6F21800268B80 /* CommonStructures.swift in Sources */,
 				14839A7F202FE58800A6CB34 /* VersionMessage.swift in Sources */,
+				497141E220F6F1BA00268B80 /* Messages.swift in Sources */,
 				14839AAB202FE7F000A6CB34 /* NetworkAddress.swift in Sources */,
 				14839A83202FE5F800A6CB34 /* AddressMessage.swift in Sources */,
 				147494EC201F9E4F006D1CF8 /* Network.swift in Sources */,
@@ -448,6 +463,7 @@
 				147494EE201FADAC006D1CF8 /* MurmurHash.swift in Sources */,
 				14839A8B202FE64D00A6CB34 /* GetDataMessage.swift in Sources */,
 				1482B5E8202721FF0098B612 /* HDPrivateKey.swift in Sources */,
+				497141E720F6F22D00268B80 /* BitcoinKitInternal.m in Sources */,
 				14839A99202FE6E700A6CB34 /* MerkleBlockMessage.swift in Sources */,
 				1463E6B42025E9480033DAAE /* BlockStore.swift in Sources */,
 				14839A8D202FE66A00A6CB34 /* PingMessage.swift in Sources */,

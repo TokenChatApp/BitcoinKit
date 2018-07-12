@@ -15,10 +15,10 @@ public class HDPrivateKey {
     public let fingerprint: UInt32
     public let childIndex: UInt32
 
-    let raw: Data
-    let chainCode: Data
+    public let raw: Data
+    public let chainCode: Data
 
-    public init(privateKey: Data, chainCode: Data, network: Network) {
+    public init(privateKey: Data, chainCode: Data, network: Network = .testnet) {
         self.raw = privateKey
         self.chainCode = chainCode
         self.network = network
@@ -27,14 +27,14 @@ public class HDPrivateKey {
         self.childIndex = 0
     }
 
-    public convenience init(seed: Data, network: Network) {
+    public convenience init(seed: Data, network: Network = .testnet) {
         let hmac = Crypto.hmacsha512(data: seed, key: "Bitcoin seed".data(using: .ascii)!)
         let privateKey = hmac[0..<32]
         let chainCode = hmac[32..<64]
         self.init(privateKey: privateKey, chainCode: chainCode, network: network)
     }
 
-    init(privateKey: Data, chainCode: Data, network: Network, depth: UInt8, fingerprint: UInt32, childIndex: UInt32) {
+    init(privateKey: Data, chainCode: Data, network: Network = .testnet, depth: UInt8, fingerprint: UInt32, childIndex: UInt32) {
         self.raw = privateKey
         self.chainCode = chainCode
         self.network = network
@@ -45,6 +45,56 @@ public class HDPrivateKey {
 
     public func publicKey() -> HDPublicKey {
         return HDPublicKey(privateKey: self, chainCode: chainCode, network: network, depth: depth, fingerprint: fingerprint, childIndex: childIndex)
+    }
+    
+    //fixme
+    
+//    public func exportRaw() -> String {
+//        return Base58.encode(raw)
+//    }
+//    public init(extended: String) throws {
+//        let decoded = Base58.decode(extended)
+//        let checksumDropped = decoded.prefix(decoded.count - 4)
+//        
+//        let networkKey = checksumDropped[0]
+//        switch networkKey {
+//        case Network.mainnet.privatekey:
+//            network = .mainnet
+//        case Network.testnet.privatekey:
+//            network = .testnet
+//        default:
+//            throw PrivateKeyError.invalidFormat
+//        }
+//        
+//        depth = checksumDropped[1]
+//        
+//        fingerprint = UInt32(checksumDropped[2])
+//        
+//        childIndex = UInt32(checksumDropped[3])
+//        
+//        
+//        
+//        let h = Crypto.sha256sha256(checksumDropped)
+//        let calculatedChecksum = h.prefix(4)
+//        let originalChecksum = decoded.suffix(4)
+//        guard calculatedChecksum == originalChecksum else {
+//            throw PrivateKeyError.invalidFormat
+//        }
+//        let privateKey = checksumDropped.dropFirst()
+//        raw = Data(privateKey)
+//    }
+    
+    public func toWIF() -> String {
+        var data = Data()
+        data += network.privatekey
+        data += depth
+        data += fingerprint
+        data += childIndex
+        data += chainCode
+        data += UInt8(0)
+        data += raw
+        let checksum = Crypto.sha256sha256(data).prefix(4)
+        return Base58.encode(data + checksum)
     }
 
     public func extended() -> String {
@@ -62,17 +112,24 @@ public class HDPrivateKey {
 
     public func derived(at index: UInt32, hardened: Bool = false) throws -> HDPrivateKey {
         // As we use explicit parameter "hardened", do not allow higher bit set.
-        if (0x80000000 & index) != 0 {
-            fatalError("invalid child index")
+        if ((0x80000000 & index) != 0) {
+            throw KeyChainError.invalidChildIndex
         }
-
-        guard let derivedKey = _HDKey(privateKey: raw, publicKey: publicKey().raw, chainCode: chainCode, depth: depth, fingerprint: fingerprint, childIndex: childIndex).derived(at: index, hardened: hardened) else {
-            throw DerivationError.derivateionFailed
+        let pubKey = publicKey().raw
+        if let keys = BitcoinKitInternal.deriveKey(raw, publicKey: pubKey, chainCode: chainCode, at: index, hardened: hardened) {
+            let fingerPrint: UInt32 = Crypto.sha256ripemd160(pubKey).withUnsafeBytes { $0.pointee }
+            return HDPrivateKey(privateKey: keys[0],
+                                chainCode: keys[1],
+                                network: network,
+                                depth: depth + 1,
+                                fingerprint: fingerPrint,
+                                childIndex: (hardened ? (0x80000000 | index) : index).bigEndian)
         }
-        return HDPrivateKey(privateKey: derivedKey.privateKey!, chainCode: derivedKey.chainCode, network: network, depth: derivedKey.depth, fingerprint: derivedKey.fingerprint, childIndex: derivedKey.childIndex)
+        throw KeyChainError.derivateionFailed
     }
 }
 
-public enum DerivationError : Error {
+public enum KeyChainError : Error {
+    case invalidChildIndex
     case derivateionFailed
 }

@@ -52,6 +52,16 @@ public struct PrivateKey {
 
         self.raw = key
     }
+    
+//    public init(key: String, network: Network) {
+//        self.raw = Base58.decode(key)
+//        self.network = network
+//    }
+    
+//    public init(raw: String) {
+//        self.raw = Base58.decode(raw)
+//        network = .mainnet
+//    }
 
     public init(wif: String) throws {
         let decoded = Base58.decode(wif)

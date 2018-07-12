@@ -26,6 +26,15 @@ public struct Transaction {
     // public let witnesses: [TransactionWitness] // A list of witnesses, one for each input; omitted if flag is omitted above
     /// The block number or timestamp at which this transaction is unlocked:
     public let lockTime: UInt32
+    
+    public init(version: Int32, txInCount: VarInt, inputs: [TransactionInput], txOutCount: VarInt, outputs: [TransactionOutput], lockTime: UInt32) {
+        self.version = version
+        self.txInCount = txInCount
+        self.inputs = inputs
+        self.txOutCount = txOutCount
+        self.outputs = outputs
+        self.lockTime = lockTime
+    }
 
     public func serialized() -> Data {
         var data = Data()
@@ -59,3 +68,95 @@ public struct Transaction {
         return Transaction(version: version, txInCount: txInCount, inputs: inputs, txOutCount: txOutCount, outputs: outputs, lockTime: lockTime)
     }
 }
+
+public struct TransactionInput {
+    /// The previous output transaction reference, as an OutPoint structure
+    public let previousOutput: TransactionOutPoint
+    /// The length of the signature script
+    public let scriptLength: VarInt
+    /// Computational Script for confirming transaction authorization
+    public let signatureScript: Data
+    /// Transaction version as defined by the sender. Intended for "replacement" of transactions when information is updated before inclusion into a block.
+    public let sequence: UInt32
+    
+    public init(previousOutput: TransactionOutPoint, scriptLength: VarInt, signatureScript: Data, sequence: UInt32) {
+        self.previousOutput = previousOutput
+        self.scriptLength = scriptLength
+        self.signatureScript = signatureScript
+        self.sequence = sequence
+    }
+
+    public func serialized() -> Data {
+        var data = Data()
+        data += previousOutput.serialized()
+        data += scriptLength.serialized()
+        data += signatureScript
+        data += sequence
+        return data
+    }
+
+    static func deserialize(_ byteStream: ByteStream) -> TransactionInput {
+        let previousOutput = TransactionOutPoint.deserialize(byteStream)
+        let scriptLength = byteStream.read(VarInt.self)
+        let signatureScript = byteStream.read(Data.self, count: Int(scriptLength.underlyingValue))
+        let sequence = byteStream.read(UInt32.self)
+        return TransactionInput(previousOutput: previousOutput, scriptLength: scriptLength, signatureScript: signatureScript, sequence: sequence)
+    }
+}
+
+public struct TransactionOutPoint {
+    /// The hash of the referenced transaction.
+    public let hash: Data
+    /// The index of the specific output in the transaction. The first output is 0, etc.
+    public let index: UInt32
+    
+    public init(hash: Data, index: UInt32) {
+        self.hash = hash
+        self.index = index
+    }
+
+    public func serialized() -> Data {
+        var data = Data()
+        data += hash.reversed()
+        data += index
+        return data
+    }
+
+    static func deserialize(_ byteStream: ByteStream) -> TransactionOutPoint {
+        let hash = Data(byteStream.read(Data.self, count: 32).reversed())
+        let index = byteStream.read(UInt32.self)
+        return TransactionOutPoint(hash: hash, index: index)
+    }
+}
+
+public struct TransactionOutput {
+    /// Transaction Value
+    public let value: Int64
+    /// Length of the pk_script
+    public let scriptLength: VarInt
+    /// Usually contains the public key as a Bitcoin script setting up conditions to claim this output
+    public let lockingScript: Data
+    
+    public init(value: Int64, scriptLength: VarInt, lockingScript: Data) {
+        self.value = value
+        self.scriptLength = scriptLength
+        self.lockingScript = lockingScript
+    }
+
+    public func serialized() -> Data {
+        var data = Data()
+        data += value
+        data += scriptLength.serialized()
+        data += lockingScript
+        return data
+    }
+
+    static func deserialize(_ byteStream: ByteStream) -> TransactionOutput {
+        let value = byteStream.read(Int64.self)
+        let scriptLength = byteStream.read(VarInt.self)
+        let lockingScript = byteStream.read(Data.self, count: Int(scriptLength.underlyingValue))
+        return TransactionOutput(value: value, scriptLength: scriptLength, lockingScript: lockingScript)
+    }
+}
+
+public struct TransactionWitness {}

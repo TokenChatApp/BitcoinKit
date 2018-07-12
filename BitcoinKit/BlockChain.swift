@@ -9,11 +9,11 @@
 import Foundation
 
 public class BlockChain {
-    let network: Network
+    let wallet: WalletProtocol
     let blockStore: BlockStore
 
-    public init(network: Network, blockStore: BlockStore) {
-        self.network = network
+    public init(wallet: WalletProtocol, blockStore: BlockStore) {
+        self.wallet = wallet
         self.blockStore = blockStore
     }
 
@@ -29,8 +29,8 @@ public class BlockChain {
         try blockStore.addTransaction(transaction, hash: hash)
     }
 
-    public func calculateBlance(address: Address) throws -> Int64 {
-        return try blockStore.calculateBlance(address: address)
+    public func calculateBlance() throws -> Int64 {
+        return try blockStore.calculateBlance(address: Address(wallet.address))
     }
 
     public func latestBlockHash() -> Data {
@@ -38,6 +38,6 @@ public class BlockChain {
         do {
             latestBlockHash = try blockStore.latestBlockHash()
         } catch {}
-        return latestBlockHash ?? network.checkpoints.last!.hash
+        return latestBlockHash ?? wallet.network.checkpoints.last!.hash
     }
 }
