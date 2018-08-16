@@ -36,6 +36,14 @@ public struct Mnemonic {
         guard status == errSecSuccess else { throw MnemonicError.randomBytesError }
         return generate(entropy: bytes, language: language)
     }
+    
+    public static func generateEntropy(strength: Strength = .default, language: Language = .english) throws -> Data {
+        let byteCount = strength.rawValue / 8
+        var bytes = Data(count: byteCount)
+        let status = bytes.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, byteCount, $0) }
+        guard status == errSecSuccess else { throw MnemonicError.randomBytesError }
+        return bytes
+    }
 
     public static func generate(entropy : Data, language: Language = .english) -> [String] {
         let list = wordList(for: language)
@@ -55,14 +63,6 @@ public struct Mnemonic {
             mnemonic.append(String(list[wi]))
         }
         return mnemonic
-    }
-    
-    public static func entropy(mnemonic m: [String], passphrase: String = "") throws -> Data {
-        let byteCount = strength.rawValue / 8
-        var bytes = Data(count: byteCount)
-        let status = bytes.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, byteCount, $0) }
-        guard status == errSecSuccess else { throw MnemonicError.randomBytesError }
-        return bytes
     }
 
     public static func seed(mnemonic m: [String], passphrase: String = "") -> Data {
