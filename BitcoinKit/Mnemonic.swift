@@ -28,7 +28,7 @@ public struct Mnemonic {
         case french
         case italian
     }
-
+    
     public static func generate(strength: Strength = .default, language: Language = .english) throws -> [String] {
         let byteCount = strength.rawValue / 8
         var bytes = Data(count: byteCount)
@@ -37,7 +37,7 @@ public struct Mnemonic {
         return generate(entropy: bytes, language: language)
     }
 
-    static func generate(entropy : Data, language: Language = .english) -> [String] {
+    public static func generate(entropy : Data, language: Language = .english) -> [String] {
         let list = wordList(for: language)
         var bin = String(entropy.flatMap { ("00000000" + String($0, radix:2)).suffix(8) })
 
@@ -55,6 +55,14 @@ public struct Mnemonic {
             mnemonic.append(String(list[wi]))
         }
         return mnemonic
+    }
+    
+    public static func entropy(mnemonic m: [String], passphrase: String = "") throws -> Data {
+        let byteCount = strength.rawValue / 8
+        var bytes = Data(count: byteCount)
+        let status = bytes.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, byteCount, $0) }
+        guard status == errSecSuccess else { throw MnemonicError.randomBytesError }
+        return bytes
     }
 
     public static func seed(mnemonic m: [String], passphrase: String = "") -> Data {
