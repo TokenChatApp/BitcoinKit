@@ -8,7 +8,7 @@
 
 import Foundation
 import BitcoinKit.Private
-import secp256k1
+import secp256k1B
 
 public struct Crypto {
     public static func sha256(_ data: Data) -> Data {
