@@ -16,21 +16,21 @@ public protocol WalletProtocol {
 final public class Wallet {
     public let privateKey: PrivateKey
     public let publicKey: PublicKey
-
+    
     public let network: Network
-
+    
     public init(privateKey: PrivateKey) {
         self.privateKey = privateKey
         self.publicKey = privateKey.publicKey()
         self.network = privateKey.network
     }
-
+    
     public init(wif: String) throws {
         self.privateKey = try PrivateKey(wif: wif)
         self.publicKey = privateKey.publicKey()
         self.network = privateKey.network
     }
-
+    
     public func serialized() -> Data {
         var data = Data()
         data = privateKey.raw
@@ -49,7 +49,7 @@ extension Wallet : Encodable {
     enum CodingKeys: String, CodingKey {
         case privateKey
     }
-
+    
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(privateKey.toWIF(), forKey: .privateKey)
@@ -65,24 +65,36 @@ extension Wallet : Decodable {
 }
 
 public final class HDWallet {
-    public let privateKey: HDPrivateKey
-    public let publicKey: HDPublicKey
-
+    public let privateKey: HDPrivateKey?
+    public let publicKey: HDPublicKey?
+    
     public let network: Network
-
+    
     let seed: Data
-
+    
     public init(seed: Data, network: Network) {
         self.seed = seed
         self.network = network
-        privateKey = HDPrivateKey(seed: seed, network: network)
-        publicKey = privateKey.publicKey()
+        do {
+            try privateKey = HDPrivateKey(seed: seed, network: network)
+                .derived(at: 44, hardened: true)
+                .derived(at: 0, hardened: true)
+                .derived(at: 0, hardened: true)
+                .derived(at: 0, hardened: false)
+                .derived(at: 0, hardened: false)
+            publicKey = privateKey!.publicKey()
+        }
+        catch {
+            privateKey = nil
+            publicKey = nil
+            print(error)
+        }
     }
 }
 
 extension HDWallet : WalletProtocol {
     public var address: String {
-        return publicKey.toAddress()
+        return publicKey == nil ? "" : publicKey!.toAddress()
     }
 }
 
@@ -91,7 +103,7 @@ extension HDWallet : Encodable {
         case seed
         case network
     }
-
+    
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(seed, forKey: .seed)
